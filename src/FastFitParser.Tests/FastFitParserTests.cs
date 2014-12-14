@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace CyclingAnalytics.Core.Tests
+namespace FastFitParser.Tests
 {
     [TestClass]
     public class FastParserTests

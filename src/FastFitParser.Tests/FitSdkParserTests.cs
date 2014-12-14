@@ -10,7 +10,7 @@ using System.Text;
 // as I build out the functionality in FastFitParser. These are a set of unit tests to validate that
 // the FIT SDK parser is functioning correctly.
 
-namespace CyclingAnalytics.Core.Tests
+namespace FastFitParser.Tests
 {
     public class FitCsvField
     {
