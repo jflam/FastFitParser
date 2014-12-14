@@ -1,10 +1,14 @@
-﻿using FastFitParser.Core;
+﻿using Dynastream.Fit;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+
+// This file contains tests for the FIT SDK parser, which I'm treating as the authoritative parser
+// as I build out the functionality in FastFitParser. These are a set of unit tests to validate that
+// the FIT SDK parser is functioning correctly.
 
 namespace CyclingAnalytics.Core.Tests
 {
@@ -178,164 +182,6 @@ namespace CyclingAnalytics.Core.Tests
         public double Distance { get; set; }
         public double Speed { get; set; }
     }
-    [TestClass]
-    public class FastParserTests
-    {
-        public readonly double SEMICIRCLES_TO_DEGREES = (180 / Math.Pow(2, 31));
-
-        [TestMethod]
-        public void TestReadLargeFileIntoInternalDataStructures()
-        {
-            using (var stream = System.IO.File.OpenRead(@"TestData\large_file.fit"))
-            {
-                var fastParser = new FastParser(stream);
-
-                var records = new List<DataSeriesRecord>();
-                foreach (var dataRecord in fastParser.GetDataRecords())
-                {
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
-                    {
-                        var record = new DataSeriesRecord();
-
-                        double latitude, longitude, cadence, heartRate, power, distance, speed;
-                        System.DateTime timeStamp;
-
-                        if (dataRecord.TryGetField(FieldNumber.TimeStamp, out timeStamp))
-                        {
-                            record.TimeStamp = timeStamp;
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.PositionLat, out latitude))
-                        {
-                            record.Latitude = latitude * SEMICIRCLES_TO_DEGREES;
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.PositionLong, out longitude))
-                        {
-                            record.Longitude = longitude * SEMICIRCLES_TO_DEGREES;
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.HeartRate, out heartRate))
-                        {
-                            record.HeartRate = heartRate; // beats * min-1
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.Cadence, out cadence))
-                        {
-                            record.Cadence = cadence; // s-1
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.Power, out power))
-                        {
-                            record.Power = power; // W
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.Distance, out distance))
-                        {
-                            record.Distance = distance / 1000; // m
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.Speed, out speed))
-                        {
-                            record.Speed = speed / 1000; // m/s
-                        }
-
-                        records.Add(record);
-                    }
-                }
-                Console.WriteLine("Read {0} timestamp values", records.Count);
-            }
-        }
-
-        [TestMethod]
-        public void TestReadLargeFile()
-        {
-            using (var stream = System.IO.File.OpenRead(@"TestData\large_file.fit"))
-            {
-                var fastParser = new FastParser(stream);
-
-                var recordCount = 0;
-                double heartRate = 0, currentHeartRate;
-                double cadence = 0, currentCadence;
-                double power = 0, currentPower;
-
-                foreach (var dataRecord in fastParser.GetDataRecords())
-                {
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
-                    {
-                        if (dataRecord.TryGetField(FieldNumber.HeartRate, out currentHeartRate))
-                        {
-                            heartRate += currentHeartRate;
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.Cadence, out currentCadence))
-                        {
-                            cadence += currentCadence;
-                        }
-                        if (dataRecord.TryGetField(FieldNumber.Power, out currentPower))
-                        {
-                            power += currentPower;
-                        }
-                        recordCount++;
-                    }
-                }
-                Console.WriteLine("Read {0} records, average HR = {1}, average Cadence = {2}, average Power = {3}", recordCount,
-                    heartRate / (double)recordCount,
-                    cadence / (double)recordCount,
-                    power / (double)recordCount);
-            }
-        }
-    }
-
-    [TestClass]
-    public class BenchmarkTests
-    {
-        public const string BENCHMARK_DIRECTORY = @"c:\users\john\onedrive\garmin";
-
-        private void TestFramework(Func<Stream, int> func)
-        {
-            long cumulativeFileSize = 0;
-            int recordsParsed = 0;
-            var stopWatch = Stopwatch.StartNew();
-
-            foreach (var file in Directory.GetFiles(BENCHMARK_DIRECTORY, "*.fit"))
-            {
-                var fi = new FileInfo(file);
-                cumulativeFileSize += fi.Length;
-
-                using (var stream = System.IO.File.OpenRead(file))
-                {
-                    recordsParsed += func(stream);
-                }
-            }
-
-            stopWatch.Stop();
-            Console.WriteLine("Parsing performance: {0:F2} MB/s, Record parse rate: {1:F2} million records/s",
-                (cumulativeFileSize / 1048576.0) / (stopWatch.ElapsedMilliseconds / 1000.0),
-                (recordsParsed / 1000000.0) / (stopWatch.ElapsedMilliseconds / 1000.0));
-        }
-
-        [TestMethod]
-        public void TestReadingAllFilesInDirectoryUsingFastParser()
-        {
-            System.DateTime maxTime = System.DateTime.MinValue;
-            TestFramework((stream) =>
-                {
-                    int recordsParsed = 0;
-                    var fastParser = new FastParser(stream);
-                    foreach (var dataRecord in fastParser.GetDataRecords())
-                    {
-                        System.DateTime timeStamp;
-                        if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
-                        {
-                            if (dataRecord.TryGetField(FieldNumber.TimeStamp, out timeStamp))
-                            {
-                                if (timeStamp > maxTime)
-                                {
-                                    maxTime = timeStamp; // Bogus calculation to make sure we don't optimize this away
-                                }
-                            }
-                            recordsParsed++;
-                        }
-                    }
-                    return recordsParsed;
-                }
-            );
-            Console.WriteLine("Most recent time = {0}", maxTime);
-        }
-    }
 
     [TestClass]
     public class FitParserHelperTests
@@ -375,6 +221,155 @@ namespace CyclingAnalytics.Core.Tests
             Assert.AreEqual("total_timer_time", field2.Name);
             Assert.AreEqual("13.749", field2.Value);
             Assert.AreEqual("s", field2.Units);
+        }
+    }
+
+    [TestClass]
+    public class FitParserTests
+    {
+        private string FormatFieldString(int recordNumber, FitCsvRecord csvRecord, List<Field> fitRecord)
+        {
+            var sb = new StringBuilder();
+            sb.Append("\n\nRecord Offset in FIT file: " + recordNumber);
+            sb.Append("\nCSV Record:\n");
+            foreach (var csvField in csvRecord.Fields)
+            {
+                sb.Append(String.Format("{0}={1} {2}\n", csvField.Name, csvField.Value, csvField.Units));
+            }
+            sb.Append("\nFIT Record:\n");
+            foreach (var fitField in fitRecord)
+            {
+                sb.Append(String.Format("{0}={1} {2}\n", FitParserHelpers.ConvertPascalCaseToRubyCase(fitField.Name), ConvertField(fitField.GetValue()), fitField.Units));
+            }
+            return sb.ToString();
+        }
+
+        private object ConvertField(object field)
+        {
+            byte[] bytes = field as byte[];
+            if (bytes != null)
+            {
+                var sb = new StringBuilder();
+                foreach (byte b in bytes)
+                {
+                    sb.Append(Convert.ToChar(b));
+                }
+                return sb;
+            }
+            else
+            {
+                return field;
+            }
+        }
+
+        const string TESTDATA_PATH = @"TestData\";
+
+        private void TestActivityFitFile(string filename, int expectedTotalMessages, int expectedTotalDefinitions)
+        {
+            // Read the answer CSV file
+            var file = FitParserHelpers.ReadFitCsvFile(TESTDATA_PATH + filename + ".csv");
+
+            // Decode a Fit file
+            var fileStream = System.IO.File.OpenRead(TESTDATA_PATH + filename + ".fit");
+            Assert.IsNotNull(fileStream);
+
+            var decode = new Decode();
+            Assert.IsNotNull(decode);
+
+            var mesgBroadcaster = new MesgBroadcaster();
+            Assert.IsNotNull(mesgBroadcaster);
+
+            Assert.IsTrue(decode.IsFIT(fileStream));
+
+            // Note that it is possible to have something that fails an integrity check, but we can still attempt to parse it
+            Assert.IsTrue(decode.CheckIntegrity(fileStream));
+
+            // Connect the Broadcaster to our event (message) source (in this case the Decoder)
+            decode.MesgEvent += mesgBroadcaster.OnMesg;
+            decode.MesgDefinitionEvent += mesgBroadcaster.OnMesgDefinition;
+
+            int totalMessages = 0, totalDefinitions = 0;
+            int currentRecord = 0;
+
+            mesgBroadcaster.MesgEvent += (sender, args) =>
+            {
+                foreach (var field in args.mesg.fields)
+                {
+                    string fieldName = FitParserHelpers.ConvertPascalCaseToRubyCase(field.Name);
+                    var record = file.Records[currentRecord];
+                    string fieldValue = ConvertField(field.GetValue()).ToString();
+                    var csvField = record.GetField(fieldName);
+                    string diagnosticFieldString = FormatFieldString(currentRecord, record, args.mesg.fields);
+                    Assert.IsNotNull(csvField, diagnosticFieldString);
+                    Assert.AreEqual(csvField.Value.ToString(), fieldValue, diagnosticFieldString);
+                }
+                totalMessages++;
+                currentRecord++;
+            };
+
+            mesgBroadcaster.MesgDefinitionEvent += (sender, args) =>
+            {
+                foreach (var field in args.mesgDef.GetFields())
+                {
+                    var record = file.Records[currentRecord];
+                }
+                totalDefinitions++;
+                currentRecord++;
+            };
+
+            Assert.IsTrue(decode.Read(fileStream));
+            Assert.AreEqual(expectedTotalMessages, totalMessages);
+            Assert.AreEqual(expectedTotalDefinitions, totalDefinitions);
+
+            fileStream.Close();
+        }
+
+        [TestMethod]
+        public void TestActivityFile()
+        {
+            TestActivityFitFile("Activity", 22, 10);
+        }
+
+        [TestMethod]
+        public void TestSettingsFile()
+        {
+            TestActivityFitFile("Settings", 3, 3);
+        }
+
+        [TestMethod]
+        public void TestWeightScaleMultiUserFile()
+        {
+            TestActivityFitFile("WeightScaleMultiUser", 7, 4);
+        }
+
+        [TestMethod]
+        public void TestWeightScaleSingleUserFile()
+        {
+            TestActivityFitFile("WeightScaleSingleUser", 6, 8);
+        }
+
+        [TestMethod]
+        public void TestWorkoutCustomTargetValuesFile()
+        {
+            TestActivityFitFile("WorkoutCustomTargetValues", 6, 3);
+        }
+
+        [TestMethod]
+        public void TestWorkoutIndividualStepsFile()
+        {
+            TestActivityFitFile("WorkoutIndividualSteps", 6, 3);
+        }
+
+        [TestMethod]
+        public void TestWorkoutRepeatGreaterThanStep()
+        {
+            TestActivityFitFile("WorkoutRepeatGreaterThanStep", 7, 3);
+        }
+
+        [TestMethod]
+        public void TestWorkoutRepeatSteps()
+        {
+            TestActivityFitFile("WorkoutRepeatSteps", 7, 3);
         }
     }
 }
