@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>John Lam</authors>
+    <licenseUrl>https://github.com/jflam/FastFitParser/blob/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/jflam/FastFitParser</projectUrl>
+    <language>en-US</language>
+    <description>$description$</description>
+    <releaseNotes>Initial release of FastFitParser</releaseNotes>
+    <copyright>Copyright 2014 John Lam</copyright>
+    <tags>FIT Parser PCL</tags>
+  </metadata>
+</package>
