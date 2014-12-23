@@ -54,6 +54,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BenchmarkTests.cs" />
+    <Compile Include="FastCrcTests.cs" />
     <Compile Include="FastFitParserTests.cs" />
     <Compile Include="FitSdkParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

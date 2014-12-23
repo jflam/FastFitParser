@@ -125,6 +125,34 @@ namespace FastFitParser.Tests
         }
 
         [TestMethod]
+        public void TestSingleFileParsePerformance()
+        {
+            int recordsParsed = 0;
+            long fastParserTime = TimeIt(5, @"TestData\large_file.fit", (stream) =>
+            {
+                System.DateTime maxTime = System.DateTime.MinValue;
+                var fastParser = new FastParser(stream);
+                foreach (var dataRecord in fastParser.GetDataRecords())
+                {
+                    System.DateTime timeStamp;
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
+                    {
+                        if (dataRecord.TryGetField(FieldNumber.TimeStamp, out timeStamp))
+                        {
+                            // Bogus calculation to make sure we don't optimize this away
+                            if (timeStamp > maxTime)
+                            {
+                                maxTime = timeStamp;
+                            }
+                        }
+                        recordsParsed++;
+                    }
+                }
+            });
+            Console.WriteLine("Parse large_file.fit best time {0}ms, {1} records parsed", fastParserTime, recordsParsed);
+        }
+
+        [TestMethod]
         public void TestCrcPerformance()
         {
             long fastParserTime = TimeIt(5, @"TestData\large_file.fit", (stream) =>
