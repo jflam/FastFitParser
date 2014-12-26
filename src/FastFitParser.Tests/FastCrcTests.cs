@@ -1,26 +1,56 @@
 ﻿using FastFitParser.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using System.Text;
 
 namespace FastFitParser.Tests
 {
+    public static class CrcTestData
+    {
+        public readonly static string[] SimpleStrings = {
+            "123456789",
+            "0123456789",
+            "01234567890",
+            "012345678901",
+            "0123456789012",
+            "01234567890123",
+            "012345678901234",
+            "0123456789012345",
+            "01234567890123456"
+        };
+
+        public readonly static ushort[] SimpleStringsCrcs = {
+            0xbb3d,
+            0x443d,
+            0xc585,
+            0x77c5,
+            0x8636,
+            0x0346,
+            0x2583,
+            0xb6a4,
+            0xad37
+        };
+    }
+
     [TestClass]
     public class SlowCrcTests
     {
         [TestMethod]
-        public void TestSimpleString1()
+        public void TestSimpleStrings()
         {
-            string source = "123456789";
-            ushort expectedCRC = 0xBB3D;
+            Assert.AreEqual(CrcTestData.SimpleStrings.Length, CrcTestData.SimpleStringsCrcs.Length);
 
-            int crc = 0;
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(source);
-            foreach (byte b in data)
+            for (int i = 0; i < CrcTestData.SimpleStrings.Length; i++)
             {
-                crc = CRC.Get16(crc, b);
-            }
+                int crc = 0;
+                byte[] data = System.Text.Encoding.UTF8.GetBytes(CrcTestData.SimpleStrings[i]);
+                foreach (byte b in data)
+                {
+                    crc = CRC.Get16(crc, b);
+                }
 
-            Assert.AreEqual(expectedCRC, crc);
+                Assert.AreEqual(CrcTestData.SimpleStringsCrcs[i], crc, "CRC16 for {0}", CrcTestData.SimpleStrings[i]);
+            }
         }
     }
 
@@ -28,79 +58,22 @@ namespace FastFitParser.Tests
     public class FastCrcTests
     {
         [TestMethod]
-        public void TestSimpleString1()
+        public void TestSimpleStrings()
         {
-            string source = "123456789";
-            ushort expectedCRC = 0xBB3D; // CRC16
-            ushort expectedCRCCCITT = 0x31C3; // CRC-CCITT
+            Assert.AreEqual(CrcTestData.SimpleStrings.Length, CrcTestData.SimpleStringsCrcs.Length);
 
-            FastCRC.InitializeCrc16LookupTable();
-
-            ushort crc = 0;
-            ushort[,] table = FastCRC.CRC16Table;
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(source);
-            using (var stream = new MemoryStream(data))
+            for (int i = 0; i < CrcTestData.SimpleStrings.Length; i++)
             {
-                using (var reader = new BinaryReader(stream))
+                byte[] bytes = Encoding.UTF8.GetBytes(CrcTestData.SimpleStrings[i]);
+                using (var stream = new MemoryStream(bytes))
                 {
-                    ulong chunk = reader.ReadUInt64();
-                    crc = (ushort)(table[7, (int)(chunk & 0xff) ^ ((crc >> 8) & 0xff)] ^ 
-                                   table[6, (int)((chunk >> 8) & 0xff) ^ (crc & 0xff)] ^
-                                   table[5, (chunk >> 16) & 0xff] ^
-                                   table[4, (chunk >> 24) & 0xff] ^
-                                   table[3, (chunk >> 32) & 0xff] ^
-                                   table[2, (chunk >> 40) & 0xff] ^
-                                   table[1, (chunk >> 48) & 0xff] ^
-                                   table[0, (chunk >> 56)]);
-
-                    // process remaining bytes
-                    byte next = reader.ReadByte();
-                    crc = (ushort)(table[0, ((crc >> 8) ^ next) & 0xff] ^ (crc << 8));
-
-                    Assert.AreEqual(expectedCRC, crc);
-                }
-            }
-
-            Assert.IsTrue(true);
-        }
-
-        [TestMethod]
-        public void TestSimpleString2()
-        {
-            string source = "123456789";
-            ushort expectedCRC = 0xBB3D; // CRC16
-
-            FastCRC.InitializeCrc16();
-
-            ushort crc = 0;
-            ushort[,] table = FastCRC.CRC16Table;
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(source);
-            using (var stream = new MemoryStream(data))
-            {
-                using (var reader = new BinaryReader(stream))
-                {
-                    ulong n = reader.ReadUInt64();
-                    crc = (ushort)(table[7, (int)(n & 0xff) ^ ((crc >> 8) & 0xff)] ^
-                                   table[6, (int)((n >> 8) & 0xff) ^ (crc & 0xff)] ^
-                                   table[5, (n >> 16) & 0xff] ^
-                                   table[4, (n >> 24) & 0xff] ^
-                                   table[3, (n >> 32) & 0xff] ^
-                                   table[2, (n >> 40) & 0xff] ^
-                                   table[1, (n >> 48) & 0xff] ^
-                                   table[0, (n >> 56)]);
-
-                    // process remaining bytes
-                    for (int i = 0; i < 1; i++)
+                    using (var reader = new BinaryReader(stream))
                     {
-                        byte next = reader.ReadByte();
-                        crc = (ushort)(table[0, (crc ^ next) & 0xff] ^ (crc >> 8));
+                        ushort crc = Crc16.ComputeCrc(reader, bytes.Length);
+                        Assert.AreEqual(CrcTestData.SimpleStringsCrcs[i], crc, "CRC16 for {0}", CrcTestData.SimpleStrings[i]);
                     }
-
-                    Assert.AreEqual(expectedCRC, crc);
                 }
             }
-
-            Assert.IsTrue(true);
         }
     }
 }

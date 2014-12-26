@@ -162,5 +162,36 @@ namespace FastFitParser.Tests
             });
             Console.WriteLine("CRC via BinaryReader best time {0}", fastParserTime);
         }
+
+        [TestMethod]
+        public void CompareFastCrcWithSlowCrc()
+        {
+            long slowParserTime = TimeIt(5, @"TestData\large_file.fit", (stream) =>
+            {
+                int crc = 0;
+                using (var reader = new BinaryReader(stream))
+                {
+                    for (int i = 0; i < stream.Length - 2; i++)
+                    {
+                        crc = FastFitParser.Core.CRC.Get16(crc, reader.ReadByte());
+                    }
+                    ushort fileCrc = reader.ReadUInt16();
+                    Assert.AreEqual(fileCrc, crc);
+                }
+            });
+            Console.WriteLine("CRC via Dynastream CRC16 implementation = {0}ms", slowParserTime);
+
+            long fastParserTime = TimeIt(5, @"TestData\large_file.fit", (stream) =>
+            {
+                using (var reader = new BinaryReader(stream))
+                {
+                    ushort crc = Crc16.ComputeCrc(reader, stream.Length - 2);
+                    ushort fileCrc = reader.ReadUInt16();
+                    Assert.AreEqual(fileCrc, crc);
+                }
+            });
+            Console.WriteLine("CRC via 64 bit 8x256 CRC16 implementation = {0}ms", fastParserTime);
+            Console.WriteLine("64 bit 8x256 CRC16 implementation is {0:0.0}x faster", (double)((double)slowParserTime / (double)fastParserTime));
+        }
     }
 }

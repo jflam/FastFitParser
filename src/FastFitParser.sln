@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastFitParser.Core", "FastF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastFitParser.Tests", "FastFitParser.Tests\FastFitParser.Tests.csproj", "{6949B712-BDD6-46A8-838B-AB5090BE128F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrcTableGenerator", "CrcTableGenerator\CrcTableGenerator.csproj", "{E0DA1B82-AA5C-42E3-9900-D0442DC49C75}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{6949B712-BDD6-46A8-838B-AB5090BE128F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6949B712-BDD6-46A8-838B-AB5090BE128F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6949B712-BDD6-46A8-838B-AB5090BE128F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0DA1B82-AA5C-42E3-9900-D0442DC49C75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0DA1B82-AA5C-42E3-9900-D0442DC49C75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0DA1B82-AA5C-42E3-9900-D0442DC49C75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0DA1B82-AA5C-42E3-9900-D0442DC49C75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -379,24 +379,15 @@ namespace FastFitParser.Core
             _fileHeader = new FileHeader(_reader);
         }
 
-        // TODO: if I implement a factory method for opening these files, I can cache
-        // the CRC is valid flag there and provide an extension mechanism for API
-        // users to cache that information to speed up performance.
-
-        // TODO: is there a way of modifying the file attributes to indicate 
-        // that its CRC has been validated already (much like the "mark of the web"?)
-        // This way we can optionally not call this.
         public bool IsFileValid()
         {
             // Compute the CRC and then reset position to start of file
             long startOfDataRecords = _reader.BaseStream.Position;
 
             _reader.BaseStream.Seek(0, SeekOrigin.Begin);
-            int crc = 0;
-            for (int i = 0; i < _fileHeader.DataSize + _fileHeader.Size; i++)
-            {
-                crc = CRC.Get16(crc, _reader.ReadByte());
-            }
+
+            // Use new high-speed CRC calculator
+            ushort crc = Crc16.ComputeCrc(_reader, (int)_fileHeader.DataSize + _fileHeader.Size);
 
             int fileCrc = _reader.ReadUInt16();
             bool result = (fileCrc == crc);
