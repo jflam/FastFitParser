@@ -11,6 +11,12 @@ using System.IO;
 
 namespace FastFitParser.Tests
 {
+    public struct FileResult
+    {
+        public int Records;
+        public System.DateTime LatestDateTimeInFile;
+    }
+
     [TestClass]
     public class BenchmarkTests
     {
@@ -18,11 +24,12 @@ namespace FastFitParser.Tests
         // a directory of FIT files that you want to benchmark parsing
         public const string BENCHMARK_DIRECTORY = @"c:\users\john\onedrive\garmin";
 
-        private void TestFramework(Func<Stream, int> func)
+        private void TestFramework(Func<Stream, FileResult> func)
         {
             long cumulativeFileSize = 0;
             int recordsParsed = 0;
             var stopWatch = Stopwatch.StartNew();
+            System.DateTime maxTime = System.DateTime.MinValue;
 
             foreach (var file in Directory.GetFiles(BENCHMARK_DIRECTORY, "*.fit"))
             {
@@ -31,14 +38,60 @@ namespace FastFitParser.Tests
 
                 using (var stream = System.IO.File.OpenRead(file))
                 {
-                    recordsParsed += func(stream);
+                    FileResult result = func(stream);
+                    recordsParsed += result.Records;
+                    if (result.LatestDateTimeInFile > maxTime)
+                    {
+                        maxTime = result.LatestDateTimeInFile;
+                    }
                 }
             }
 
             stopWatch.Stop();
-            Console.WriteLine("Parsing performance: {0:F2} MB/s, Record parse rate: {1:F2} million records/s",
+            Console.WriteLine("Parsing performance: {0:F2} MB/s, Record parse rate: {1:F2} million records/s, Most Recent Time = {2}",
                 (cumulativeFileSize / 1048576.0) / (stopWatch.ElapsedMilliseconds / 1000.0),
-                (recordsParsed / 1000000.0) / (stopWatch.ElapsedMilliseconds / 1000.0));
+                (recordsParsed / 1000000.0) / (stopWatch.ElapsedMilliseconds / 1000.0),
+                maxTime);
+        }
+
+        private FileResult TestReadingAllFilesInDirectoryUsingFastParser(Stream stream, bool validateCrc)
+        {
+            System.DateTime maxTime = System.DateTime.MinValue;
+            int recordsParsed = 0;
+            var fastParser = new FastParser(stream);
+            if (validateCrc)
+            {
+                Assert.IsTrue(fastParser.IsFileValid());
+            }
+
+            foreach (var dataRecord in fastParser.GetDataRecords())
+            {
+                System.DateTime timeStamp;
+                if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
+                {
+                    if (dataRecord.TryGetField(FieldNumber.TimeStamp, out timeStamp))
+                    {
+                        // Bogus calculation to make sure we don't optimize this away
+                        if (timeStamp > maxTime)
+                        {
+                            maxTime = timeStamp;
+                        }
+                    }
+                    recordsParsed++;
+                }
+            }
+            return new FileResult { Records = recordsParsed, LatestDateTimeInFile = maxTime };
+        }
+
+        [TestMethod]
+        public void TestReadingAllFilesInDirectoryUsingFastParserWithCrcValidation()
+        {
+            System.DateTime maxTime = System.DateTime.MinValue;
+            TestFramework((stream) =>
+                {
+                    return TestReadingAllFilesInDirectoryUsingFastParser(stream, true);
+                }
+            );
         }
 
         [TestMethod]
@@ -47,28 +100,49 @@ namespace FastFitParser.Tests
             System.DateTime maxTime = System.DateTime.MinValue;
             TestFramework((stream) =>
                 {
-                    int recordsParsed = 0;
-                    var fastParser = new FastParser(stream);
-                    foreach (var dataRecord in fastParser.GetDataRecords())
-                    {
-                        System.DateTime timeStamp;
-                        if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
-                        {
-                            if (dataRecord.TryGetField(FieldNumber.TimeStamp, out timeStamp))
-                            {
-                                // Bogus calculation to make sure we don't optimize this away
-                                if (timeStamp > maxTime)
-                                {
-                                    maxTime = timeStamp; 
-                                }
-                            }
-                            recordsParsed++;
-                        }
-                    }
-                    return recordsParsed;
+                    return TestReadingAllFilesInDirectoryUsingFastParser(stream, false);
                 }
             );
-            Console.WriteLine("Most recent time = {0}", maxTime);
+        }
+
+        private FileResult TestReadingAllFilesInDirectoryUsingSdkParser(Stream stream, bool validateCrc)
+        {
+            int recordCount = 0;
+            System.DateTime maxTime = System.DateTime.MinValue;
+
+            var parser = new Decode();
+            if (validateCrc)
+            {
+                Assert.IsTrue(parser.CheckIntegrity(stream));
+            }
+
+            parser.MesgEvent += (sender, args) =>
+            {
+                if (args.mesg.Name == "Record")
+                {
+                    var recordMesg = new RecordMesg(args.mesg);
+                    System.DateTime timeStamp = recordMesg.GetTimestamp().GetDateTime();
+                    if (timeStamp > maxTime)
+                    {
+                        maxTime = timeStamp;
+                    }
+                    recordCount++;
+                }
+            };
+
+            Assert.IsTrue(parser.Read(stream));
+            return new FileResult { Records = recordCount, LatestDateTimeInFile = maxTime };
+        }
+
+        [TestMethod]
+        public void TestReadingAllFilesInDirectoryUsingSdkParserWithCrcValidation()
+        {
+            System.DateTime maxTime = System.DateTime.MinValue;
+            TestFramework((stream) =>
+                {
+                    return TestReadingAllFilesInDirectoryUsingSdkParser(stream, true);
+                }
+            );
         }
 
         [TestMethod]
@@ -77,28 +151,9 @@ namespace FastFitParser.Tests
             System.DateTime maxTime = System.DateTime.MinValue;
             TestFramework((stream) =>
                 {
-                    int recordsParsed = 0;
-                    var parser = new Decode();
-
-                    parser.MesgEvent += (sender, args) =>
-                    {
-                        if (args.mesg.Name == "Record")
-                        {
-                            var recordMesg = new RecordMesg(args.mesg);
-                            System.DateTime timeStamp = recordMesg.GetTimestamp().GetDateTime();
-                            if (timeStamp > maxTime)
-                            {
-                                maxTime = timeStamp;
-                            }
-                            recordsParsed++;
-                        }
-                    };
-
-                    Assert.IsTrue(parser.Read(stream));
-                    return recordsParsed;
+                    return TestReadingAllFilesInDirectoryUsingSdkParser(stream, false);
                 }
             );
-            Console.WriteLine("Most recent time = {0}", maxTime);
         }
 
         private long TimeIt(int iterations, string path, Action<Stream> func)
@@ -150,17 +205,6 @@ namespace FastFitParser.Tests
                 }
             });
             Console.WriteLine("Parse large_file.fit best time {0}ms, {1} records parsed", fastParserTime, recordsParsed);
-        }
-
-        [TestMethod]
-        public void TestCrcPerformance()
-        {
-            long fastParserTime = TimeIt(5, @"TestData\large_file.fit", (stream) =>
-            {
-                var fastParser = new FastParser(stream);
-                Assert.IsTrue(fastParser.IsFileValid());
-            });
-            Console.WriteLine("CRC via BinaryReader best time {0}", fastParserTime);
         }
 
         [TestMethod]
