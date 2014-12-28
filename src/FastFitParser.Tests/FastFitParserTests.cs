@@ -71,6 +71,28 @@ namespace FastFitParser.Tests
         }
 
         [TestMethod]
+        public void ReadFitFileWithoutHrData()
+        {
+            using (var stream = System.IO.File.OpenRead(@"TestData\no_hr_data.fit"))
+            {
+                var fastParser = new FastParser(stream);
+                Assert.IsTrue(fastParser.IsFileValid());
+
+                foreach (var dataRecord in fastParser.GetDataRecords())
+                {
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
+                    {
+                        double heartRate;
+                        if (dataRecord.TryGetField(FieldNumber.HeartRate, out heartRate))
+                        {
+                            Assert.IsTrue(false);
+                        }
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public void TestReadLargeFile()
         {
             using (var stream = System.IO.File.OpenRead(@"TestData\large_file.fit"))

@@ -229,44 +229,80 @@ namespace FastFitParser.Core
 
         public bool TryGetField(FieldNumber fieldNumber, out double value)
         {
+            value = 0;
             FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
             if (fieldDefinition == null)
             {
-                value = 0;
                 return false;
             }
             else
             {
+                // We will return false if we encounter an invalid value in the raw data.
+                // The caller needs to interpret invalid values the same as missing values.
                 if (fieldDefinition.FieldType == 0x01)
                 {
-                    value = Convert.ToDouble(_binaryReader.ReadSByte());
+                    sbyte raw = _binaryReader.ReadSByte();
+                    if (raw == 0x7f)
+                    {
+                        return false;
+                    }
+                    value = Convert.ToDouble(raw);
                 }
                 else if (fieldDefinition.FieldType == 0x02 || fieldDefinition.FieldType == 0x0A)
                 {
-                    value = Convert.ToDouble(_binaryReader.ReadByte());
+                    byte raw = _binaryReader.ReadByte();
+                    if (raw == 0xff)
+                    {
+                        return false; 
+                    }
+                    value = Convert.ToDouble(raw);
                 }
                 else if (fieldDefinition.FieldType == 0x83)
                 {
-                    value = Convert.ToDouble(_binaryReader.ReadInt16());
+                    Int16 raw = _binaryReader.ReadInt16();
+                    if (raw == 0x7fff)
+                    {
+                        return false;
+                    }
+                    value = Convert.ToDouble(raw);
                 }
                 else if (fieldDefinition.FieldType == 0x84 || fieldDefinition.FieldType == 0x8B)
                 {
-                    value = Convert.ToDouble(_binaryReader.ReadUInt16());
+                    UInt16 raw = _binaryReader.ReadUInt16();
+                    if (raw == 0xffff)
+                    {
+                        return false;
+                    }
+                    value = Convert.ToDouble(raw);
                 }
                 else if (fieldDefinition.FieldType == 0x85)
-                { 
-                    value = Convert.ToDouble(_binaryReader.ReadInt32());
+                {
+                    Int32 raw = _binaryReader.ReadInt32();
+                    if (raw == 0x7fffffff)
+                    {
+                        return false;
+                    }
+                    value = Convert.ToDouble(raw);
                 }
                 else if (fieldDefinition.FieldType == 0x86 || fieldDefinition.FieldType == 0x8C)
                 {
-                    value = Convert.ToDouble(_binaryReader.ReadUInt32());
+                    UInt32 raw = _binaryReader.ReadUInt32();
+                    if (raw == 0xffffffff)
+                    {
+                        return false;
+                    }
+                    value = Convert.ToDouble(raw);
                 }
                 else if (fieldDefinition.FieldType == 0x88)
                 {
+                    // TODO: don't know how to handle floating point invalid values.
+                    // I think I need to peek the raw bits rather than try to interpret 
                     value = Convert.ToDouble(_binaryReader.ReadSingle());
                 }
                 else if (fieldDefinition.FieldType == 0x89)
                 {
+                    // TODO: don't know how to handle floating point invalid values
+                    // I think I need to peek the raw bits rather than try to interpret 
                     value = Convert.ToDouble(_binaryReader.ReadDouble());
                 }
                 else
