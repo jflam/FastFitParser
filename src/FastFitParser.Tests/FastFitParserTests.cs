@@ -30,35 +30,35 @@ namespace FastFitParser.Tests
                         double latitude, longitude, cadence, heartRate, power, distance, speed;
                         System.DateTime timeStamp;
 
-                        if (dataRecord.TryGetField(FieldNumber.TimeStamp, out timeStamp))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.TimeStamp, out timeStamp))
                         {
                             record.TimeStamp = timeStamp;
                         }
-                        if (dataRecord.TryGetField(FieldNumber.PositionLat, out latitude))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.PositionLat, out latitude))
                         {
                             record.Latitude = latitude * SEMICIRCLES_TO_DEGREES;
                         }
-                        if (dataRecord.TryGetField(FieldNumber.PositionLong, out longitude))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.PositionLong, out longitude))
                         {
                             record.Longitude = longitude * SEMICIRCLES_TO_DEGREES;
                         }
-                        if (dataRecord.TryGetField(FieldNumber.HeartRate, out heartRate))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.HeartRate, out heartRate))
                         {
                             record.HeartRate = heartRate; // beats * min-1
                         }
-                        if (dataRecord.TryGetField(FieldNumber.Cadence, out cadence))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.Cadence, out cadence))
                         {
                             record.Cadence = cadence; // s-1
                         }
-                        if (dataRecord.TryGetField(FieldNumber.Power, out power))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.Power, out power))
                         {
                             record.Power = power; // W
                         }
-                        if (dataRecord.TryGetField(FieldNumber.Distance, out distance))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.Distance, out distance))
                         {
                             record.Distance = distance / 1000; // m
                         }
-                        if (dataRecord.TryGetField(FieldNumber.Speed, out speed))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.Speed, out speed))
                         {
                             record.Speed = speed / 1000; // m/s
                         }
@@ -83,7 +83,7 @@ namespace FastFitParser.Tests
                     if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
                     {
                         double heartRate;
-                        if (dataRecord.TryGetField(FieldNumber.HeartRate, out heartRate))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.HeartRate, out heartRate))
                         {
                             Assert.IsTrue(false);
                         }
@@ -108,15 +108,15 @@ namespace FastFitParser.Tests
                 {
                     if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
                     {
-                        if (dataRecord.TryGetField(FieldNumber.HeartRate, out currentHeartRate))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.HeartRate, out currentHeartRate))
                         {
                             heartRate += currentHeartRate;
                         }
-                        if (dataRecord.TryGetField(FieldNumber.Cadence, out currentCadence))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.Cadence, out currentCadence))
                         {
                             cadence += currentCadence;
                         }
-                        if (dataRecord.TryGetField(FieldNumber.Power, out currentPower))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.Power, out currentPower))
                         {
                             power += currentPower;
                         }

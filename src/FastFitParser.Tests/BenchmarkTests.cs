@@ -97,7 +97,7 @@ namespace FastFitParser.Tests
                 System.DateTime timeStamp;
                 if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
                 {
-                    if (dataRecord.TryGetField(FieldNumber.TimeStamp, out timeStamp))
+                    if (dataRecord.TryGetField((byte)RecordFieldNumber.TimeStamp, out timeStamp))
                     {
                         // Bogus calculation to make sure we don't optimize this away
                         if (timeStamp > maxTime)
@@ -220,7 +220,7 @@ namespace FastFitParser.Tests
                     System.DateTime timeStamp;
                     if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
                     {
-                        if (dataRecord.TryGetField(FieldNumber.TimeStamp, out timeStamp))
+                        if (dataRecord.TryGetField((byte)RecordFieldNumber.TimeStamp, out timeStamp))
                         {
                             // Bogus calculation to make sure we don't optimize this away
                             if (timeStamp > maxTime)

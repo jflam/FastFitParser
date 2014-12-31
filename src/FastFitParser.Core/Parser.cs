@@ -9,10 +9,8 @@ namespace FastFitParser.Core
 {
     #region Definitions
 
-    // Well-known field numbers are used to retrieve things like heart rate and power. Note
-    // that field numbers are _record relative_, that is they are only unique for a given
-    // record type; they are not globally unique.
-    public enum FieldNumber : byte
+    // Field numbers for different types of data records
+    public enum RecordFieldNumber : byte
     {
         PositionLat = 0,
         PositionLong = 1,
@@ -23,6 +21,65 @@ namespace FastFitParser.Core
         Speed = 6,
         Power = 7,
         TimeStamp = 253,
+    }
+
+    public enum EventFieldNumber : byte
+    {
+        Event = 0,      // Event enum
+        EventType = 1,  // EventType enum
+        Data16 = 2,
+        Data32 = 3,
+    }
+
+    public enum Event : byte
+    {
+        Timer = 0,
+        Workout = 3,
+        WorkoutStep = 4,
+        PowerDown = 5,
+        PowerUp = 6,
+        OffCourse = 7,
+        Session = 8,
+        Lap = 9,
+        CoursePoint = 10,
+        Battery = 11,
+        VirtualPartnerPace = 12,
+        HrHighAlert = 13,
+        HrLowAlert = 14,
+        SpeedHighAlert = 15,
+        SpeedLowAlert = 16,
+        CadHighAlert = 17,
+        CadLowAlert = 18,
+        PowerHighAlert = 19,
+        PowerLowAlert = 20,
+        RecoveryHr = 21,
+        BatteryLow = 22,
+        TimeDurationAlert = 23,
+        DistanceDurationAlert = 24,
+        CalorieDurationAlert = 25,
+        Activity = 26,
+        FitnessEquipment = 27,
+        Length = 28,
+        UserMarker = 32,
+        SportPoint = 33,
+        Calibration = 36,
+        Invalid = 0xFF
+    }
+
+    public enum EventType : byte
+    {
+        Start = 0,
+        Stop = 1,
+        ConsecutiveDepreciated = 2,
+        Marker = 3,
+        StopAll = 4,
+        BeginDepreciated = 5,
+        EndDepreciated = 6,
+        EndAllDepreciated = 7,
+        StopDisable = 8,
+        StopDisableAll = 9,
+        Invalid = 0xFF
+
     }
 
     // Global message numbers identify unique message types in the .FIT file format. AFAIK, all records
@@ -208,7 +265,7 @@ namespace FastFitParser.Core
         // over the DataRecord is initialized, and pointing at the start
         // of the field.
         // Returns null if not found.
-        private FieldDefinition GetFieldDefinition(FieldNumber fieldNumber)
+        private FieldDefinition GetFieldDefinition(byte fieldNumber)
         {
             foreach (var fieldDefinition in _definitionRecord.FieldDefinitions)
             {
@@ -227,7 +284,7 @@ namespace FastFitParser.Core
             return null;
         }
 
-        public bool TryGetField(FieldNumber fieldNumber, out double value)
+        public bool TryGetField(byte fieldNumber, out double value)
         {
             value = 0;
             FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
@@ -316,7 +373,7 @@ namespace FastFitParser.Core
 
         private readonly System.DateTime _dateTimeOffset = new System.DateTime(1989, 12, 31, 0, 0, 0, System.DateTimeKind.Utc);
 
-        public bool TryGetField(FieldNumber fieldNumber, out System.DateTime value)
+        public bool TryGetField(byte fieldNumber, out System.DateTime value)
         {
             FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
             if (fieldDefinition != null && fieldDefinition.FieldType == 0x86)
@@ -336,7 +393,7 @@ namespace FastFitParser.Core
             }
         }
 
-        public bool TryGetField(FieldNumber fieldNumber, out string value)
+        public bool TryGetField(byte fieldNumber, out string value)
         {
             FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
             if (fieldDefinition != null && fieldDefinition.FieldType == 0x07)
@@ -347,6 +404,29 @@ namespace FastFitParser.Core
             else
             {
                 value = String.Empty;
+                return false;
+            }
+        }
+
+        // Read an enum type
+        public bool TryGetField(byte fieldNumber, out byte value)
+        {
+            FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
+            if (fieldDefinition != null && fieldDefinition.FieldType == 0x00)
+            {
+                value = _binaryReader.ReadByte();
+                if (value == 0xff)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                value = 0xff;
                 return false;
             }
         }
