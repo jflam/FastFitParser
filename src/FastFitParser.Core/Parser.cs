@@ -4,137 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace FastFitParser.Core
 {
-    #region Definitions
-
-    // Field numbers for different types of data records
-    public enum RecordFieldNumber : byte
-    {
-        PositionLat = 0,
-        PositionLong = 1,
-        Altitude = 2,
-        HeartRate = 3,
-        Cadence = 4,
-        Distance = 5,
-        Speed = 6,
-        Power = 7,
-        TimeStamp = 253,
-    }
-
-    public enum EventFieldNumber : byte
-    {
-        Event = 0,      // Event enum
-        EventType = 1,  // EventType enum
-        Data16 = 2,
-        Data32 = 3,
-    }
-
-    public enum Event : byte
-    {
-        Timer = 0,
-        Workout = 3,
-        WorkoutStep = 4,
-        PowerDown = 5,
-        PowerUp = 6,
-        OffCourse = 7,
-        Session = 8,
-        Lap = 9,
-        CoursePoint = 10,
-        Battery = 11,
-        VirtualPartnerPace = 12,
-        HrHighAlert = 13,
-        HrLowAlert = 14,
-        SpeedHighAlert = 15,
-        SpeedLowAlert = 16,
-        CadHighAlert = 17,
-        CadLowAlert = 18,
-        PowerHighAlert = 19,
-        PowerLowAlert = 20,
-        RecoveryHr = 21,
-        BatteryLow = 22,
-        TimeDurationAlert = 23,
-        DistanceDurationAlert = 24,
-        CalorieDurationAlert = 25,
-        Activity = 26,
-        FitnessEquipment = 27,
-        Length = 28,
-        UserMarker = 32,
-        SportPoint = 33,
-        Calibration = 36,
-        Invalid = 0xFF
-    }
-
-    public enum EventType : byte
-    {
-        Start = 0,
-        Stop = 1,
-        ConsecutiveDepreciated = 2,
-        Marker = 3,
-        StopAll = 4,
-        BeginDepreciated = 5,
-        EndDepreciated = 6,
-        EndAllDepreciated = 7,
-        StopDisable = 8,
-        StopDisableAll = 9,
-        Invalid = 0xFF
-
-    }
-
-    // Global message numbers identify unique message types in the .FIT file format. AFAIK, all records
-    // are dynamically defined within the .FIT file; that is the schema for each message type is encoded
-    // within the file itself. These identifiers are only for well-known message types to help the parser
-    // categorize the data itself.
-    public enum GlobalMessageNumber : ushort
-    {
-        FileId = 0,
-        Capabilities = 1,
-        DeviceSettings = 2,
-        UserProfile = 3,
-        HrmProfile = 4,
-        SdmProfile = 5,
-        BikeProfile = 6,
-        ZonesTarget = 7,
-        HrZone = 8,
-        PowerZone = 9,
-        MetZone = 10,
-        Sport = 12,
-        Goal = 15,
-        Session = 18,
-        Lap = 19,
-        Record = 20,
-        Event = 21,
-        DeviceInfo = 23,
-        Workout = 26,
-        WorkoutStep = 27,
-        Schedule = 28,
-        WeightScale = 30,
-        Course = 31,
-        CoursePoint = 32,
-        Totals = 33,
-        Activity = 34,
-        Software = 35,
-        FileCapabilities = 37,
-        MesgCapabilities = 38,
-        FieldCapabilities = 39,
-        FileCreator = 49,
-        BloodPressure = 51,
-        SpeedZone = 53,
-        Monitoring = 55,
-        Hrv = 78,
-        Length = 101,
-        MonitoringInfo = 103,
-        Pad = 105,
-        SlaveDevice = 106,
-        CadenceZone = 131,
-        MemoGlob = 145,
-        MfgRangeMin = 0xFF00, // 0xFF00 - 0xFFFE reserved for manufacturer specific messages
-        MfgRangeMax = 0xFFFE, // 0xFF00 - 0xFFFE reserved for manufacturer specific messages
-        Invalid = 0xFFFF,
-    }
-    #endregion
-
     public sealed class DefinitionRecord
     {
         private readonly byte _header;
@@ -431,9 +304,16 @@ namespace FastFitParser.Core
             }
         }
 
+        // TODO: Read an array type
+
         public GlobalMessageNumber GlobalMessageNumber
         {
             get { return _definitionRecord.GlobalMessageNumber; }
+        }
+
+        public DefinitionRecord RecordDefinition
+        {
+            get { return _definitionRecord; }
         }
     }
 
