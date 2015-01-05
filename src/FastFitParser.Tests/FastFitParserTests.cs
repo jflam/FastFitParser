@@ -23,7 +23,7 @@ namespace FastFitParser.Tests
                 var records = new List<DataSeriesRecord>();
                 foreach (var dataRecord in fastParser.GetDataRecords())
                 {
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageDefs.Record)
                     {
                         var record = new DataSeriesRecord();
 
@@ -80,7 +80,7 @@ namespace FastFitParser.Tests
 
                 foreach (var dataRecord in fastParser.GetDataRecords())
                 {
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageDefs.Record)
                     {
                         double heartRate;
                         if (dataRecord.TryGetField(RecordDef.HeartRate, out heartRate))
@@ -106,7 +106,7 @@ namespace FastFitParser.Tests
 
                 foreach (var dataRecord in fastParser.GetDataRecords())
                 {
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageDefs.Record)
                     {
                         if (dataRecord.TryGetField(RecordDef.HeartRate, out currentHeartRate))
                         {
@@ -128,22 +128,6 @@ namespace FastFitParser.Tests
                     cadence / (double)recordCount,
                     power / (double)recordCount);
             }
-        }
-    }
-
-    [TestClass]
-    public class RandomBehaviorTests
-    {
-        [TestMethod]
-        public void TestEnumBehavior()
-        {
-            GlobalMessageNumber num1 = (GlobalMessageNumber)1; // exists
-            GlobalMessageNumber num2 = (GlobalMessageNumber)146; // doesn't exist
-            var value1 = Enum.GetName(typeof(GlobalMessageNumber), num1);
-            var value2 = Enum.GetName(typeof(GlobalMessageNumber), num2);
-            Assert.AreEqual(value1, "Capabilities");
-            Assert.IsNull(value2);
-            Assert.IsFalse(Enum.IsDefined(typeof(GlobalMessageNumber), num2));
         }
     }
 }

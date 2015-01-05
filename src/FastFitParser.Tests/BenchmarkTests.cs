@@ -95,7 +95,7 @@ namespace FastFitParser.Tests
             foreach (var dataRecord in fastParser.GetDataRecords())
             {
                 System.DateTime timeStamp;
-                if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
+                if (dataRecord.GlobalMessageNumber == GlobalMessageDefs.Record)
                 {
                     if (dataRecord.TryGetField(RecordDef.TimeStamp, out timeStamp))
                     {
@@ -218,7 +218,7 @@ namespace FastFitParser.Tests
                 foreach (var dataRecord in fastParser.GetDataRecords())
                 {
                     System.DateTime timeStamp;
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageNumber.Record)
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageDefs.Record)
                     {
                         if (dataRecord.TryGetField(RecordDef.TimeStamp, out timeStamp))
                         {

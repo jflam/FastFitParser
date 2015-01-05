@@ -20,7 +20,7 @@ namespace FastFitParser.Core
 
         public List<FieldDefinition> FieldDefinitions { get; private set; }
 
-        public GlobalMessageNumber GlobalMessageNumber { get; private set; }
+        public ushort GlobalMessageNumber { get; private set; }
 
         public int Size { get; private set; }
 
@@ -48,7 +48,7 @@ namespace FastFitParser.Core
 
             // Range of message numbers 0:65535
             // TODO: understand what this field really means
-            GlobalMessageNumber = (GlobalMessageNumber)reader.ReadUInt16();
+            GlobalMessageNumber = reader.ReadUInt16();
 
             // Parse the all of the fields in the definition message
             byte fieldCount = reader.ReadByte();
@@ -306,7 +306,7 @@ namespace FastFitParser.Core
 
         // TODO: Read an array type
 
-        public GlobalMessageNumber GlobalMessageNumber
+        public ushort GlobalMessageNumber
         {
             get { return _definitionRecord.GlobalMessageNumber; }
         }

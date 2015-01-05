@@ -58,6 +58,7 @@
     <Compile Include="FastFitParserTests.cs" />
     <Compile Include="FitSdkParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="GarminRecordsAndFieldsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FastFitParser.Core\FastFitParser.Core.csproj">

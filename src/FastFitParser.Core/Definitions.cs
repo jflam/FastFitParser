@@ -1,5 +1,6 @@
 ﻿// Definitions for record structure and field types
 
+using System.Collections.Generic;
 namespace FastFitParser.Core
 {
     // TODO: consider putting the type of the field here as well, and throwing type mismatch errors from the TryGet function
@@ -114,7 +115,33 @@ namespace FastFitParser.Core
         public static readonly FieldDef Event = Definitions.DefineField(0, "Event", true, false);
         public static readonly FieldDef EventType = Definitions.DefineField(1, "EventType", true, false);
         public static readonly FieldDef Data16 = Definitions.DefineField(2, "Data16");
-        public static readonly FieldDef Data32 = Definitions.DefineField(3, "Data32");
+        public static readonly FieldDef Data = Definitions.DefineField(3, "Data");
+        public static readonly FieldDef TimerTrigger = Definitions.DefineField(3, "TimerTrigger", true, false); // alias
+        public static readonly FieldDef CoursePointIndex = Definitions.DefineField(3, "CoursePointIndex"); // alias
+        public static readonly FieldDef BatteryLevel = Definitions.DefineField(3, "BatteryLevel"); // alias
+        public static readonly FieldDef VirtualPartnerSpeed = Definitions.DefineField(3, "VirtualPartnerSpeed"); // alias
+        public static readonly FieldDef HrHighAlert = Definitions.DefineField(3, "HrHighAlert"); // alias
+        public static readonly FieldDef HrLowAlert = Definitions.DefineField(3, "HrLowAlert"); // alias
+        public static readonly FieldDef SpeedHighAlert = Definitions.DefineField(3, "SpeedHighAlert"); // alias
+        public static readonly FieldDef SpeedLowAlert = Definitions.DefineField(3, "SpeedLowAlert"); // alias
+        public static readonly FieldDef CadHighAlert = Definitions.DefineField(3, "CadHighAlert"); // alias
+        public static readonly FieldDef CadLowAlert = Definitions.DefineField(3, "CadLowAlert"); // alias
+        public static readonly FieldDef PowerHighAlert = Definitions.DefineField(3, "PowerHighAlert"); // alias
+        public static readonly FieldDef PowerLowAlert = Definitions.DefineField(3, "PowerLowAlert"); // alias
+        public static readonly FieldDef TimeDurationAlert = Definitions.DefineField(3, "TimeDurationAlert"); // alias
+        public static readonly FieldDef DistanceDurationAlert = Definitions.DefineField(3, "DistanceDurationAlert"); // alias
+        public static readonly FieldDef CalorieDurationAlert = Definitions.DefineField(3, "CalorieDurationAlert"); // alias
+        public static readonly FieldDef FitnessEquipmentState = Definitions.DefineField(3, "FitnessEquipmentState", true, false); // alias
+        public static readonly FieldDef SportPoint = Definitions.DefineField(3, "SportPoint"); // alias
+        public static readonly FieldDef GearChangeData = Definitions.DefineField(3, "GearChangeData"); // alias
+        public static readonly FieldDef EventGroup = Definitions.DefineField(4, "EventGroup", true, false); 
+        public static readonly FieldDef Score = Definitions.DefineField(7, "Score"); 
+        public static readonly FieldDef OpponentScore = Definitions.DefineField(8, "OpponentScore"); 
+        public static readonly FieldDef FrontGearNum = Definitions.DefineField(9, "FrontGearNum"); 
+        public static readonly FieldDef FrontGear = Definitions.DefineField(10, "FrontGear"); 
+        public static readonly FieldDef RearGearNum = Definitions.DefineField(11, "RearGearNum"); 
+        public static readonly FieldDef RearGear = Definitions.DefineField(12, "RearGear"); 
+        public static readonly FieldDef TimeStamp = Definitions.DefineField(253, "TimeStamp");
     }
 
     public static class LapDef 
@@ -365,7 +392,6 @@ namespace FastFitParser.Core
         public static readonly FieldDef AvgLeftPedalSmoothness = Definitions.DefineField(103, "AvgLeftPedalSmoothness");
         public static readonly FieldDef AvgRightPedalSmoothness = Definitions.DefineField(104, "AvgRightPedalSmoothness");
         public static readonly FieldDef AvgCombinedPedalSmoothness = Definitions.DefineField(105, "AvgCombinedPedalSmoothness");
-
         public static readonly FieldDef TimeStamp = Definitions.DefineField(253, "TimeStamp");
         public static readonly FieldDef MessageIndex = Definitions.DefineField(254, "MessageIndex");
     }
@@ -419,58 +445,82 @@ namespace FastFitParser.Core
         StopDisable = 8,
         StopDisableAll = 9,
         Invalid = 0xFF
+    }
 
+    public class MessageDef
+    {
+        public readonly ushort MessageNumber;
+        public readonly string MessageName;
+        public readonly FieldDefinitions FieldDefinitions;
+
+        public MessageDef(ushort messageNumber, string messageName, FieldDefinitions fieldDefinitions)
+        {
+            MessageNumber = messageNumber;
+            MessageName = messageName;
+            FieldDefinitions = fieldDefinitions;
+        }
+
+        public static implicit operator ushort(MessageDef message)
+        {
+            return message.MessageNumber;
+        }
     }
 
     // Global message numbers identify unique message types in the .FIT file format. AFAIK, all records
     // are dynamically defined within the .FIT file; that is the schema for each message type is encoded
     // within the file itself. These identifiers are only for well-known message types to help the parser
     // categorize the data itself.
-    public enum GlobalMessageNumber : ushort
+    public static class GlobalMessageDefs
     {
-        FileId = 0,
-        Capabilities = 1,
-        DeviceSettings = 2,
-        UserProfile = 3,
-        HrmProfile = 4,
-        SdmProfile = 5,
-        BikeProfile = 6,
-        ZonesTarget = 7,
-        HrZone = 8,
-        PowerZone = 9,
-        MetZone = 10,
-        Sport = 12,
-        Goal = 15,
-        Session = 18,
-        Lap = 19,
-        Record = 20,
-        Event = 21,
-        DeviceInfo = 23,
-        Workout = 26,
-        WorkoutStep = 27,
-        Schedule = 28,
-        WeightScale = 30,
-        Course = 31,
-        CoursePoint = 32,
-        Totals = 33,
-        Activity = 34,
-        Software = 35,
-        FileCapabilities = 37,
-        MesgCapabilities = 38,
-        FieldCapabilities = 39,
-        FileCreator = 49,
-        BloodPressure = 51,
-        SpeedZone = 53,
-        Monitoring = 55,
-        Hrv = 78,
-        Length = 101,
-        MonitoringInfo = 103,
-        Pad = 105,
-        SlaveDevice = 106,
-        CadenceZone = 131,
-        MemoGlob = 145,
-        MfgRangeMin = 0xFF00, // 0xFF00 - 0xFFFE reserved for manufacturer specific messages
-        MfgRangeMax = 0xFFFE, // 0xFF00 - 0xFFFE reserved for manufacturer specific messages
-        Invalid = 0xFFFF,
+        public static readonly Dictionary<int, MessageDef> Messages = new Dictionary<int, MessageDef>();
+
+        private static MessageDef Add(byte messageNumber, string messageName, FieldDefinitions fieldDefinitions)
+        {
+            var messageDef = new MessageDef(messageNumber, messageName, fieldDefinitions);
+            Messages[messageNumber] = messageDef;
+            return messageDef;
+        }
+
+        public static readonly MessageDef FileId = Add(0, "FileId", FileIdDef.Definitions);
+        public static readonly MessageDef Capabilities = Add(1, "Capabilities", null);
+        public static readonly MessageDef DeviceSettings = Add(2, "DeviceSettings", null);
+        public static readonly MessageDef UserProfile = Add(3, "UserProfile", null);
+        public static readonly MessageDef HrmProfile = Add(4, "HrmProfile", null);
+        public static readonly MessageDef SdmProfile = Add(5, "SdmProfile", null);
+        public static readonly MessageDef BikeProfile = Add(6, "BikeProfile", null);
+        public static readonly MessageDef ZonesTarget = Add(7, "ZonesTarget", null);
+        public static readonly MessageDef HrZone = Add(8, "HrZone", null);
+        public static readonly MessageDef PowerZone = Add(9, "PowerZone", null);
+        public static readonly MessageDef MetZone = Add(10, "MetZone", null);
+        public static readonly MessageDef Sport = Add(12, "Sport", null);
+        public static readonly MessageDef Goal = Add(15, "Goal", null);
+        public static readonly MessageDef Session = Add(18, "Session", SessionDef.Definitions);
+        public static readonly MessageDef Lap = Add(19, "Lap", LapDef.Definitions);
+        public static readonly MessageDef Record = Add(20, "Record", RecordDef.Definitions);
+        public static readonly MessageDef Event = Add(21, "Event", EventDef.Definitions);
+        public static readonly MessageDef DeviceInfo = Add(23, "DeviceInfo", DeviceInfoDef.Definitions);
+        public static readonly MessageDef Workout = Add(26, "Workout", null);
+        public static readonly MessageDef WorkoutStep = Add(27, "WorkoutStep", null);
+        public static readonly MessageDef Schedule = Add(28, "Schedule", null);
+        public static readonly MessageDef WeightScale = Add(30, "WeightScale", null);
+        public static readonly MessageDef Course = Add(31, "Course", null);
+        public static readonly MessageDef CoursePoint = Add(32, "CoursePoint", null);
+        public static readonly MessageDef Totals = Add(33, "Totals", null);
+        public static readonly MessageDef Activity = Add(34, "Activity", ActivityDef.Definitions);
+        public static readonly MessageDef Software = Add(35, "Software", null);
+        public static readonly MessageDef FileCapabilities = Add(37, "FileCapabilities", null);
+        public static readonly MessageDef MesgCapabilities = Add(38, "MesgCapabilities", null);
+        public static readonly MessageDef FieldCapabilities = Add(39, "FieldCapabilities", null);
+        public static readonly MessageDef FileCreator = Add(49, "FileCreator", FileCreatorDef.Definitions);
+        public static readonly MessageDef BloodPressure = Add(51, "BloodPressure", null);
+        public static readonly MessageDef SpeedZone = Add(53, "SpeedZone", null);
+        public static readonly MessageDef Monitoring = Add(55, "Monitoring", null);
+        public static readonly MessageDef Hrv = Add(78, "Hrv", null);
+        public static readonly MessageDef Length = Add(101, "Length", null);
+        public static readonly MessageDef MonitoringInfo = Add(103, "MonitoringInfo", null);
+        public static readonly MessageDef Pad = Add(105, "Pad", null);
+        public static readonly MessageDef SlaveDevice = Add(106, "SlaveDevice", null);
+        public static readonly MessageDef CadenceZone = Add(131, "CadenceZone", null);
+        public static readonly MessageDef MemoGlob = Add(145, "MemoGlob", null);
     }
 }
