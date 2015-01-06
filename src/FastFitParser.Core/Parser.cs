@@ -8,7 +8,7 @@ using System.Text;
 
 namespace FastFitParser.Core
 {
-    public sealed class DefinitionRecord
+    public sealed class RecordDefinition
     {
         private readonly byte _header;
         private readonly byte _architecture;
@@ -34,7 +34,7 @@ namespace FastFitParser.Core
             get { return _architecture == 0; }
         }
 
-        public DefinitionRecord(byte header, BinaryReader reader)
+        public RecordDefinition(byte header, BinaryReader reader)
         {
             _header = header;
 
@@ -119,18 +119,18 @@ namespace FastFitParser.Core
     public sealed class DataRecord
     {
         private readonly byte _header;
-        private readonly DefinitionRecord _definitionRecord;
+        private readonly RecordDefinition _recordDefinition;
         private readonly byte[] _recordData;
 
         private bool _isInitialized;
         private BinaryReader _binaryReader;
 
 
-        public DataRecord(byte header, DefinitionRecord definitionRecord, BinaryReader reader)
+        public DataRecord(byte header, RecordDefinition recordDefinition, BinaryReader reader)
         {
             _header = header;
-            _definitionRecord = definitionRecord;
-            _recordData = reader.ReadBytes(_definitionRecord.Size);
+            _recordDefinition = recordDefinition;
+            _recordData = reader.ReadBytes(_recordDefinition.Size);
         }
 
         // Linear search through a DefinitionRecord's FieldDefinitions 
@@ -140,7 +140,7 @@ namespace FastFitParser.Core
         // Returns null if not found.
         private FieldDefinition GetFieldDefinition(byte fieldNumber)
         {
-            foreach (var fieldDefinition in _definitionRecord.FieldDefinitions)
+            foreach (var fieldDefinition in _recordDefinition.FieldDefinitions)
             {
                 if (fieldDefinition.FieldDefinitionNumber == (byte)fieldNumber)
                 {
@@ -308,12 +308,12 @@ namespace FastFitParser.Core
 
         public ushort GlobalMessageNumber
         {
-            get { return _definitionRecord.GlobalMessageNumber; }
+            get { return _recordDefinition.GlobalMessageNumber; }
         }
 
-        public DefinitionRecord RecordDefinition
+        public RecordDefinition RecordDefinition
         {
-            get { return _definitionRecord; }
+            get { return _recordDefinition; }
         }
     }
 
@@ -341,7 +341,7 @@ namespace FastFitParser.Core
         private BinaryReader _reader;
         private FileHeader _fileHeader;
 
-        private DefinitionRecord[] _localRecordDefinitions = new DefinitionRecord[16];
+        private RecordDefinition[] _localRecordDefinitions = new RecordDefinition[16];
 
         public FastParser(Stream stream)
         {
@@ -387,7 +387,7 @@ namespace FastFitParser.Core
                 if ((header & 0x80) == 0 && (header & 0x40) == 0x40)
                 {
                     // Parse the record definition and store the definition in our array
-                    var recordDefinition = new DefinitionRecord(header, _reader);
+                    var recordDefinition = new RecordDefinition(header, _reader);
                     _localRecordDefinitions[localMessageNumber] = recordDefinition;
                     bytesRead += (uint)(recordDefinition.RecordDefinitionSize + 1);
                 }

@@ -23,7 +23,7 @@ namespace FastFitParser.Tests
                 var records = new List<DataSeriesRecord>();
                 foreach (var dataRecord in fastParser.GetDataRecords())
                 {
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageDefs.Record)
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageDecls.Record)
                     {
                         var record = new DataSeriesRecord();
 
@@ -80,7 +80,7 @@ namespace FastFitParser.Tests
 
                 foreach (var dataRecord in fastParser.GetDataRecords())
                 {
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageDefs.Record)
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageDecls.Record)
                     {
                         double heartRate;
                         if (dataRecord.TryGetField(RecordDef.HeartRate, out heartRate))
@@ -106,7 +106,7 @@ namespace FastFitParser.Tests
 
                 foreach (var dataRecord in fastParser.GetDataRecords())
                 {
-                    if (dataRecord.GlobalMessageNumber == GlobalMessageDefs.Record)
+                    if (dataRecord.GlobalMessageNumber == GlobalMessageDecls.Record)
                     {
                         if (dataRecord.TryGetField(RecordDef.HeartRate, out currentHeartRate))
                         {

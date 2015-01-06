@@ -12,7 +12,7 @@ namespace FastFitParser.Tests
     [TestClass]
     public class GarminRecordsAndFieldsTests
     {
-        private void DumpFieldsOfKnownRecord(MessageDef messageDef, List<FieldDefinition> fieldDefinitions)
+        private void DumpFieldsOfKnownRecord(MessageDecl messageDef, List<FieldDefinition> fieldDefinitions)
         {
             if (messageDef.FieldDefinitions != null)
             {
@@ -53,10 +53,10 @@ namespace FastFitParser.Tests
                     ushort messageNumber = dataRecord.GlobalMessageNumber;
                     if (!listOfRecordTypesSeen.Contains(messageNumber))
                     {
-                        MessageDef messageDef;
-                        if (GlobalMessageDefs.Messages.TryGetValue(messageNumber, out messageDef))
+                        MessageDecl messageDef;
+                        if (GlobalMessageDecls.Declarations.TryGetValue(messageNumber, out messageDef))
                         {
-                            Console.WriteLine("Record type: {0}", GlobalMessageDefs.Messages[messageNumber].MessageName);
+                            Console.WriteLine("Record type: {0}", GlobalMessageDecls.Declarations[messageNumber].MessageName);
                             DumpFieldsOfKnownRecord(messageDef, dataRecord.RecordDefinition.FieldDefinitions);
                         }
                         else
