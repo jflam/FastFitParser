@@ -5,7 +5,6 @@ namespace FastFitParser.Core
 {
     // Definitions for record structure and field types
 
-    // TODO: consider putting the type of the field here as well, and throwing type mismatch errors from the TryGet function
     public class FieldDecl
     {
         public FieldDecl(byte fieldNumber, string fieldName)
@@ -37,19 +36,22 @@ namespace FastFitParser.Core
 
     public class FieldDecls
     {
-        public readonly string[] FieldNames = new string[256];
+        public readonly LinkedList<FieldDecl>[] Declarations = new LinkedList<FieldDecl>[256];
 
         public FieldDecl DeclareField(byte fieldNumber, string fieldName, bool isEnum, bool isArray)
         {
             var result = new FieldDecl(fieldNumber, fieldName, isEnum, isArray);
-            if (FieldNames[fieldNumber] != null)
+
+            if (Declarations[fieldNumber] != null)
             {
-                FieldNames[fieldNumber] += "/" + fieldName;
+                Declarations[fieldNumber].AddLast(result);
             }
             else
             {
-                FieldNames[fieldNumber] = fieldName;
+                Declarations[fieldNumber] = new LinkedList<FieldDecl>();
+                Declarations[fieldNumber].AddLast(result);
             }
+
             return result;
         }
         
@@ -59,7 +61,7 @@ namespace FastFitParser.Core
         }
     }
 
-    public class RecordDef : FieldDecls
+    public class RecordDef 
     {
         public static FieldDecls Declarations = new FieldDecls();
 
@@ -110,7 +112,7 @@ namespace FastFitParser.Core
         public static readonly FieldDecl TimeStamp = Declarations.DeclareField(253, "TimeStamp");
     }
 
-    public class EventDef : FieldDecls
+    public class EventDef 
     {
         public static FieldDecls Declarations = new FieldDecls();
 
@@ -457,18 +459,18 @@ namespace FastFitParser.Core
     {
         public readonly ushort MessageNumber;
         public readonly string MessageName;
-        public readonly FieldDecls FieldDefinitions;
+        public readonly FieldDecls FieldDeclarations;
 
-        public MessageDecl(ushort messageNumber, string messageName, FieldDecls fieldDefinitions)
+        public MessageDecl(ushort messageNumber, string messageName, FieldDecls fieldDeclarations)
         {
             MessageNumber = messageNumber;
             MessageName = messageName;
-            FieldDefinitions = fieldDefinitions;
+            FieldDeclarations = fieldDeclarations;
         }
 
-        public static implicit operator ushort(MessageDecl message)
+        public static implicit operator ushort(MessageDecl messageDecl)
         {
-            return message.MessageNumber;
+            return messageDecl.MessageNumber;
         }
     }
 

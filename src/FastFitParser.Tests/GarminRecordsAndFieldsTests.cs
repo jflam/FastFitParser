@@ -12,18 +12,45 @@ namespace FastFitParser.Tests
     [TestClass]
     public class GarminRecordsAndFieldsTests
     {
-        private void DumpFieldsOfKnownRecord(MessageDecl messageDef, List<FieldDefinition> fieldDefinitions)
+        private void DumpFieldsOfKnownRecord(MessageDecl messageDecl, List<FieldDefinition> fieldDefinitions)
         {
-            if (messageDef.FieldDefinitions != null)
+            if (messageDecl.FieldDeclarations != null)
             {
                 foreach (var item in fieldDefinitions)
                 {
-                    string fieldName = messageDef.FieldDefinitions.FieldNames[item.FieldDefinitionNumber];
-                    if (fieldName == null)
+                    bool isArray = false;
+                    bool isEnum = false;
+                    string fieldName = String.Empty;
+
+                    var fieldDecls = messageDecl.FieldDeclarations.Declarations[item.FieldDefinitionNumber];
+
+                    if (fieldDecls == null)
                     {
                         fieldName = item.FieldDefinitionNumber.ToString();
                     }
-                    Console.WriteLine("    {0}, Type {1}", fieldName, item.FieldType);
+                    else
+                    {
+                        if (fieldDecls.Count == 1)
+                        {
+                            if (fieldDecls.First.Value.IsArray)
+                            {
+                                isArray = true;
+                            }
+                            if (fieldDecls.First.Value.IsEnum)
+                            {
+                                isEnum = true;
+                            }
+                            fieldName = fieldDecls.First.Value.FieldName;
+                        }
+                        else
+                        {
+                            foreach (var fieldDecl in fieldDecls)
+                            {
+                                fieldName += fieldDecl.FieldName + "|";
+                            }
+                        }
+                    }
+                    Console.WriteLine("    {0}, Type {1}, IsEnum? {2} IsArray? {3}", fieldName, item.FieldType, isEnum, isArray);
                 }
             }
             else
