@@ -1,6 +1,7 @@
 ﻿// Definitions for record structure and field types
 
 using System.Collections.Generic;
+
 namespace FastFitParser.Core
 {
     // TODO: consider putting the type of the field here as well, and throwing type mismatch errors from the TryGet function
@@ -178,6 +179,11 @@ namespace FastFitParser.Core
         public static readonly FieldDef LapTrigger = Definitions.DefineField(24, "LapTrigger", true, false);
         public static readonly FieldDef Sport = Definitions.DefineField(25, "Sport", true, false);
         public static readonly FieldDef EventGroup = Definitions.DefineField(26, "EventGroup");
+        // Coordinates of the NE and SW corners of the lap. These are not documented by the SDK, will see if they are right.
+        public static readonly FieldDef NecLat = Definitions.DefineField(27, "NecLat");
+        public static readonly FieldDef NecLong = Definitions.DefineField(28, "NecLong");
+        public static readonly FieldDef SwcLat = Definitions.DefineField(29, "SwcLat");
+        public static readonly FieldDef SwcLong = Definitions.DefineField(30, "SwcLong");
         public static readonly FieldDef NumLengths = Definitions.DefineField(32, "NumLengths");
         public static readonly FieldDef NormalizedPower = Definitions.DefineField(33, "NormalizedPower");
         public static readonly FieldDef LeftRightBalance = Definitions.DefineField(34, "LeftRightBalance");
@@ -395,7 +401,6 @@ namespace FastFitParser.Core
         public static readonly FieldDef TimeStamp = Definitions.DefineField(253, "TimeStamp");
         public static readonly FieldDef MessageIndex = Definitions.DefineField(254, "MessageIndex");
     }
-
 
     public enum Event : byte
     {
