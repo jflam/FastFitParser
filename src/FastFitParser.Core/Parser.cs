@@ -157,10 +157,10 @@ namespace FastFitParser.Core
             return null;
         }
 
-        public bool TryGetField(byte fieldNumber, out double value)
+        public bool TryGetField(FieldDecl fieldDecl, out double value)
         {
             value = 0;
-            FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
+            FieldDefinition fieldDefinition = GetFieldDefinition(fieldDecl);
             if (fieldDefinition == null)
             {
                 return false;
@@ -246,9 +246,9 @@ namespace FastFitParser.Core
 
         private readonly System.DateTime _dateTimeOffset = new System.DateTime(1989, 12, 31, 0, 0, 0, System.DateTimeKind.Utc);
 
-        public bool TryGetField(byte fieldNumber, out System.DateTime value)
+        public bool TryGetField(FieldDecl fieldDecl, out System.DateTime value)
         {
-            FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
+            FieldDefinition fieldDefinition = GetFieldDefinition(fieldDecl);
             if (fieldDefinition != null && fieldDefinition.FieldType == 0x86)
             {
                 UInt32 timeStamp = _binaryReader.ReadUInt32();
@@ -266,9 +266,9 @@ namespace FastFitParser.Core
             }
         }
 
-        public bool TryGetField(byte fieldNumber, out string value)
+        public bool TryGetField(FieldDecl fieldDecl, out string value)
         {
-            FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
+            FieldDefinition fieldDefinition = GetFieldDefinition(fieldDecl);
             if (fieldDefinition != null && fieldDefinition.FieldType == 0x07)
             {
                 value = _binaryReader.ReadString();
@@ -282,9 +282,9 @@ namespace FastFitParser.Core
         }
 
         // Read an enum type
-        public bool TryGetField(byte fieldNumber, out byte value)
+        public bool TryGetField(FieldDecl fieldDecl, out byte value)
         {
-            FieldDefinition fieldDefinition = GetFieldDefinition(fieldNumber);
+            FieldDefinition fieldDefinition = GetFieldDefinition(fieldDecl);
             if (fieldDefinition != null && fieldDefinition.FieldType == 0x00)
             {
                 value = _binaryReader.ReadByte();

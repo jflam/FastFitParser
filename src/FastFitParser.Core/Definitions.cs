@@ -53,11 +53,6 @@ namespace FastFitParser.Core
             return result;
         }
         
-        public FieldDecl DeclareField(byte fieldNumber, string fieldName, Type type)
-        {
-            return DeclareField(fieldNumber, fieldName, false, false);
-        }
-
         public FieldDecl DeclareField(byte fieldNumber, string fieldName)
         {
             return DeclareField(fieldNumber, fieldName, false, false);
@@ -68,9 +63,9 @@ namespace FastFitParser.Core
     {
         public static FieldDecls Declarations = new FieldDecls();
 
-        public static readonly FieldDecl PositionLat = Declarations.DeclareField(0, "PositionLat", typeof(int));
-        public static readonly FieldDecl PositionLong = Declarations.DeclareField(1, "PositionLong", typeof(int));
-        public static readonly FieldDecl Altitude = Declarations.DeclareField(2, "Altitude", typeof(float));
+        public static readonly FieldDecl PositionLat = Declarations.DeclareField(0, "PositionLat");
+        public static readonly FieldDecl PositionLong = Declarations.DeclareField(1, "PositionLong");
+        public static readonly FieldDecl Altitude = Declarations.DeclareField(2, "Altitude");
         public static readonly FieldDecl HeartRate = Declarations.DeclareField(3, "HeartRate");
         public static readonly FieldDecl Cadence = Declarations.DeclareField(4, "Cadence");
         public static readonly FieldDecl Distance = Declarations.DeclareField(5, "Distance");
@@ -112,7 +107,7 @@ namespace FastFitParser.Core
         public static readonly FieldDecl SaturatedHemoglobinPercentMin = Declarations.DeclareField(58, "SaturatedHemoglobinPercentMin");
         public static readonly FieldDecl SaturatedHemoglobinPercentMax = Declarations.DeclareField(59, "SaturatedHemoglobinPercentMax");
         public static readonly FieldDecl DeviceIndex = Declarations.DeclareField(62, "DeviceIndex");
-        public static readonly FieldDecl TimeStamp = Declarations.DeclareField(253, "TimeStamp", typeof(DateTime));
+        public static readonly FieldDecl TimeStamp = Declarations.DeclareField(253, "TimeStamp");
     }
 
     public class EventDef : FieldDecls
