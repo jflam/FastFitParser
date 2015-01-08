@@ -256,7 +256,7 @@ namespace FastFitParser.Core
                 {
                     throw new InvalidOperationException("timeStampValue > 0x10000000 I don't know how to compute this.");
                 }
-                value = new System.DateTime(timeStamp * 10000000L + _dateTimeOffset.Ticks);
+                value = new System.DateTime(timeStamp * 10000000L + _dateTimeOffset.Ticks, DateTimeKind.Utc);
                 return true;
             }
             else
