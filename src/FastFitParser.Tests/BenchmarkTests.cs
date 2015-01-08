@@ -92,7 +92,7 @@ namespace FastFitParser.Tests
                 Assert.IsTrue(fastParser.IsFileValid());
             }
 
-            foreach (var dataRecord in fastParser.GetDataRecords())
+            foreach (var dataRecord in fastParser.GetMessages())
             {
                 System.DateTime timeStamp;
                 if (dataRecord.GlobalMessageNumber == GlobalMessageDecls.Record)
@@ -215,7 +215,7 @@ namespace FastFitParser.Tests
             {
                 System.DateTime maxTime = System.DateTime.MinValue;
                 var fastParser = new FastParser(stream);
-                foreach (var dataRecord in fastParser.GetDataRecords())
+                foreach (var dataRecord in fastParser.GetMessages())
                 {
                     System.DateTime timeStamp;
                     if (dataRecord.GlobalMessageNumber == GlobalMessageDecls.Record)

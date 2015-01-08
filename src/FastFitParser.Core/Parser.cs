@@ -8,12 +8,12 @@ using System.Text;
 
 namespace FastFitParser.Core
 {
-    public sealed class RecordDefinition
+    public sealed class MessageDefinition
     {
         private readonly byte _header;
         private readonly byte _architecture;
 
-        public byte LocalRecordNumber
+        public byte LocalMessageNumber
         {
             get { return (byte)(_header & 0xF); }
         }
@@ -24,7 +24,7 @@ namespace FastFitParser.Core
 
         public int Size { get; private set; }
 
-        public int RecordDefinitionSize
+        public int MessageDefinitionSize
         {
             get { return FieldDefinitions.Count * 3 + 5; }
         }
@@ -34,7 +34,7 @@ namespace FastFitParser.Core
             get { return _architecture == 0; }
         }
 
-        public RecordDefinition(byte header, BinaryReader reader)
+        public MessageDefinition(byte header, BinaryReader reader)
         {
             _header = header;
 
@@ -116,37 +116,36 @@ namespace FastFitParser.Core
         }
     }
 
-    public sealed class DataRecord
+    public sealed class Message
     {
         private readonly byte _header;
-        private readonly RecordDefinition _recordDefinition;
-        private readonly byte[] _recordData;
+        private readonly MessageDefinition _messageDefinition;
+        private readonly byte[] _messageData;
 
         private bool _isInitialized;
         private BinaryReader _binaryReader;
 
-
-        public DataRecord(byte header, RecordDefinition recordDefinition, BinaryReader reader)
+        public Message(byte header, MessageDefinition messageDefinition, BinaryReader reader)
         {
             _header = header;
-            _recordDefinition = recordDefinition;
-            _recordData = reader.ReadBytes(_recordDefinition.Size);
+            _messageDefinition = messageDefinition;
+            _messageData = reader.ReadBytes(_messageDefinition.Size);
         }
 
-        // Linear search through a DefinitionRecord's FieldDefinitions 
+        // Linear search through a Message's FieldDefinitions 
         // If found, will also guarantee that the internal BinaryReader
-        // over the DataRecord is initialized, and pointing at the start
+        // over the Message is initialized, and pointing at the start
         // of the field.
         // Returns null if not found.
         private FieldDefinition GetFieldDefinition(byte fieldNumber)
         {
-            foreach (var fieldDefinition in _recordDefinition.FieldDefinitions)
+            foreach (var fieldDefinition in _messageDefinition.FieldDefinitions)
             {
                 if (fieldDefinition.FieldDefinitionNumber == (byte)fieldNumber)
                 {
                     if (!_isInitialized)
                     {
-                        var memoryStream = new MemoryStream(_recordData);
+                        var memoryStream = new MemoryStream(_messageData);
                         _binaryReader = new BinaryReader(memoryStream);
                         _isInitialized = true;
                     }
@@ -308,25 +307,25 @@ namespace FastFitParser.Core
 
         public ushort GlobalMessageNumber
         {
-            get { return _recordDefinition.GlobalMessageNumber; }
+            get { return _messageDefinition.GlobalMessageNumber; }
         }
 
-        public RecordDefinition RecordDefinition
+        public MessageDefinition MessageDefinition
         {
-            get { return _recordDefinition; }
+            get { return _messageDefinition; }
         }
     }
 
 #if DEBUG
     public static class FastParserDebugHelpers
     {
-        public static void DumpDefinitionRecord(DefinitionRecord recordDefinition)
+        public static void DumpMessageDefinition(MessageDefinition messageDefinition)
         {
-            Debug.WriteLine("Record definition seen: {0}, local message number: {1}",
-                recordDefinition.GlobalMessageNumber,
-                recordDefinition.LocalRecordNumber);
+            Debug.WriteLine("Message definition seen: {0}, local message number: {1}",
+                messageDefinition.GlobalMessageNumber,
+                messageDefinition.LocalMessageNumber);
 
-            foreach (var fieldDefinition in recordDefinition.FieldDefinitions)
+            foreach (var fieldDefinition in messageDefinition.FieldDefinitions)
             {
                 Debug.WriteLine("::::Field definition number: {0}, Size: {1}, Type: {2}", fieldDefinition.FieldDefinitionNumber,
                     fieldDefinition.FieldOffset,
@@ -341,7 +340,7 @@ namespace FastFitParser.Core
         private BinaryReader _reader;
         private FileHeader _fileHeader;
 
-        private RecordDefinition[] _localRecordDefinitions = new RecordDefinition[16];
+        private MessageDefinition[] _localMessageDefinitions = new MessageDefinition[16];
 
         public FastParser(Stream stream)
         {
@@ -352,7 +351,7 @@ namespace FastFitParser.Core
         public bool IsFileValid()
         {
             // Compute the CRC and then reset position to start of file
-            long startOfDataRecords = _reader.BaseStream.Position;
+            long startOfMessages = _reader.BaseStream.Position;
 
             _reader.BaseStream.Seek(0, SeekOrigin.Begin);
 
@@ -362,12 +361,12 @@ namespace FastFitParser.Core
             int fileCrc = _reader.ReadUInt16();
             bool result = (fileCrc == crc);
 
-            // Reset position to the start of the data records
-            _reader.BaseStream.Seek(startOfDataRecords, SeekOrigin.Begin);
+            // Reset position to the start of the messages
+            _reader.BaseStream.Seek(startOfMessages, SeekOrigin.Begin);
             return result;
         }
 
-        public IEnumerable<DataRecord> GetDataRecords()
+        public IEnumerable<Message> GetMessages()
         {
             uint bytesToRead = _fileHeader.DataSize;
             uint bytesRead = 0;
@@ -382,34 +381,34 @@ namespace FastFitParser.Core
                 //   0 == record
                 byte localMessageNumber = (byte)(header & 0xf);
 
-                // Definition records are parsed internally by the parser and not exposed to
+                // Message definitions are parsed internally by the parser and not exposed to
                 // the caller.
                 if ((header & 0x80) == 0 && (header & 0x40) == 0x40)
                 {
-                    // Parse the record definition and store the definition in our array
-                    var recordDefinition = new RecordDefinition(header, _reader);
-                    _localRecordDefinitions[localMessageNumber] = recordDefinition;
-                    bytesRead += (uint)(recordDefinition.RecordDefinitionSize + 1);
+                    // Parse the message definition and store the definition in our array
+                    var messageDefinition = new MessageDefinition(header, _reader);
+                    _localMessageDefinitions[localMessageNumber] = messageDefinition;
+                    bytesRead += (uint)(messageDefinition.MessageDefinitionSize + 1);
                 }
                 else if ((header & 0x80) == 0 && (header & 0x40) == 0)
                 {
-                    var currentDefinitionRecord = _localRecordDefinitions[localMessageNumber];
-                    Debug.Assert(currentDefinitionRecord != null);
+                    var currentMessageDefinition = _localMessageDefinitions[localMessageNumber];
+                    Debug.Assert(currentMessageDefinition != null);
 
-                    // This design reads the current record into an in-memory byte array.
+                    // This design reads the current message into an in-memory byte array.
                     // An alternate design would involve passing in the current binary reader
-                    // and allowing the caller of DataRecord to read fields using the binary
+                    // and allowing the caller of Message to read fields using the binary
                     // reader directly instead of creating a MemoryStream over the byte array
-                    // and using a different BinaryReader in the DataRecord. I have done 
+                    // and using a different BinaryReader in the Message. I have done 
                     // exactly this and measured the performance, and it is actually SLOWER
                     // than this approach. I haven't root caused why, but would assume that
                     // Seek-ing arbitrarily using the BinaryReader over the FileStream is 
                     // slow vs. Seek-ing over a BinaryReader over a MemoryStream.
 
-                    var dataRecord = new DataRecord(header, currentDefinitionRecord, _reader);
-                    yield return dataRecord;
+                    var message = new Message(header, currentMessageDefinition, _reader);
+                    yield return message;
 
-                    bytesRead += (uint)(currentDefinitionRecord.Size + 1);
+                    bytesRead += (uint)(currentMessageDefinition.Size + 1);
                 }
             }
         }

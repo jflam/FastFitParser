@@ -75,7 +75,7 @@ namespace FastFitParser.Tests
                 var fastParser = new FastParser(stream);
                 var listOfRecordTypesSeen = new List<ushort>();
 
-                foreach (var dataRecord in fastParser.GetDataRecords())
+                foreach (var dataRecord in fastParser.GetMessages())
                 {
                     ushort messageNumber = dataRecord.GlobalMessageNumber;
                     if (!listOfRecordTypesSeen.Contains(messageNumber))
@@ -84,14 +84,14 @@ namespace FastFitParser.Tests
                         if (GlobalMessageDecls.Declarations.TryGetValue(messageNumber, out messageDef))
                         {
                             Console.WriteLine("Record type: {0}", GlobalMessageDecls.Declarations[messageNumber].MessageName);
-                            DumpFieldsOfKnownRecord(messageDef, dataRecord.RecordDefinition.FieldDefinitions);
+                            DumpFieldsOfKnownRecord(messageDef, dataRecord.MessageDefinition.FieldDefinitions);
                         }
                         else
                         {
                             Console.WriteLine("Record type: {0}", messageNumber);
-                            DumpFieldsOfUnknownRecord(dataRecord.RecordDefinition.FieldDefinitions);
+                            DumpFieldsOfUnknownRecord(dataRecord.MessageDefinition.FieldDefinitions);
                         }
-                        foreach (var field in dataRecord.RecordDefinition.FieldDefinitions)
+                        foreach (var field in dataRecord.MessageDefinition.FieldDefinitions)
                         {
                             
                         }

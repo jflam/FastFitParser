@@ -21,7 +21,7 @@ namespace FastFitParser.Tests
                 var fastParser = new FastParser(stream);
 
                 var records = new List<DataSeriesRecord>();
-                foreach (var dataRecord in fastParser.GetDataRecords())
+                foreach (var dataRecord in fastParser.GetMessages())
                 {
                     if (dataRecord.GlobalMessageNumber == GlobalMessageDecls.Record)
                     {
@@ -78,7 +78,7 @@ namespace FastFitParser.Tests
                 var fastParser = new FastParser(stream);
                 Assert.IsTrue(fastParser.IsFileValid());
 
-                foreach (var dataRecord in fastParser.GetDataRecords())
+                foreach (var dataRecord in fastParser.GetMessages())
                 {
                     if (dataRecord.GlobalMessageNumber == GlobalMessageDecls.Record)
                     {
@@ -104,7 +104,7 @@ namespace FastFitParser.Tests
                 double cadence = 0, currentCadence;
                 double power = 0, currentPower;
 
-                foreach (var dataRecord in fastParser.GetDataRecords())
+                foreach (var dataRecord in fastParser.GetMessages())
                 {
                     if (dataRecord.GlobalMessageNumber == GlobalMessageDecls.Record)
                     {
